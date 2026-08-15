@@ -276,11 +276,11 @@ For more detailed information:
 
 ## ⚖️ License
 
-[Add your license here]
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 👤 Author
 
-[Add author information]
+Shruti Nair
 
 ## 🤝 Support
 
