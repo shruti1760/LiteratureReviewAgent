@@ -276,11 +276,11 @@ For more detailed information:
 
 ## ⚖️ License
 
-[Add your license here]
+
 
 ## 👤 Author
 
-[Add author information]
+Shruti Nair
 
 ## 🤝 Support
 
