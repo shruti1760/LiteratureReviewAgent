@@ -3,8 +3,6 @@ from dotenv import load_dotenv
 
 load_dotenv(".env")
 
-print("Google key loaded:", bool(os.getenv("GOOGLE_API_KEY")))
-
 import asyncio
 from agents.reader import reader_agent
 load_dotenv(".env")

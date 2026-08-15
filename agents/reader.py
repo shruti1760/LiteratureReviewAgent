@@ -4,7 +4,7 @@ from models.schemas import Paper
 
 
 reader_agent = Agent(
-    "google:gemini-2.5-flash",
+    "google:gemini-3.5-flash",
     output_type=Paper,
     system_prompt="""
     You are a research paper reader.
