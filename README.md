@@ -1,22 +1,22 @@
-# 📚 Literature Review Agent
+# Literature Review Agent
 
 An intelligent, agentic literature review assistant built with **PydanticAI** that automates the extraction, analysis, and synthesis of research papers into structured literature reviews.
 
-## 🎯 Overview
+## Overview
 
 Literature Review Agent is a multi-agent system designed to streamline academic research workflows by automatically processing research papers and generating comprehensive literature reviews. The system leverages large language models to understand research content, extract key insights, identify patterns, and synthesize findings across multiple papers.
 
-## ✨ Features & Goals
+## Features & Goals
 
 The Literature Review Agent is designed to:
 
-- **📖 Extract Structured Information** - Automatically parse research papers and extract key metadata (title, authors, abstract, methodology, findings, etc.)
-- **🔍 Analyze Research Papers** - Identify similarities, differences, research gaps, and emerging themes across papers
-- **📝 Generate Literature Reviews** - Synthesize extracted information into coherent, well-organized literature reviews
-- **🎯 Interpret Review Tasks** - Understand user requirements for literature review generation
-- **🔗 Track Research Connections** - Build knowledge graphs showing relationships between papers and research areas
+- **Extract Structured Information** - Automatically parse research papers and extract key metadata (title, authors, abstract, methodology, findings, etc.)
+- **Analyze Research Papers** - Identify similarities, differences, research gaps, and emerging themes across papers
+- **Generate Literature Reviews** - Synthesize extracted information into coherent, well-organized literature reviews
+- **Interpret Review Tasks** - Understand user requirements for literature review generation
+- **Track Research Connections** - Build knowledge graphs showing relationships between papers and research areas
 
-## 🏗️ Architecture
+## Architecture
 
 The system follows a modular pipeline architecture:
 
@@ -47,7 +47,7 @@ Structured Literature Review
 | **Writer** | 🚧 In Progress | Generate formatted literature review documents |
 | **Planner** | 🚧 In Progress | Plan and orchestrate the review workflow |
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 LiteratureReviewAgent/
@@ -74,7 +74,7 @@ LiteratureReviewAgent/
 └── .venv/                 # Python virtual environment
 ```
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -189,7 +189,7 @@ class Paper(BaseModel):
     limitations: str       # Acknowledged limitations
 ```
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Component | Technology |
 |-----------|-----------|
@@ -200,7 +200,7 @@ class Paper(BaseModel):
 | **Async Runtime** | asyncio |
 | **Environment Management** | python-dotenv |
 
-## 📦 Dependencies
+## Dependencies
 
 Key packages:
 - **pydantic-ai** - Agentic AI framework
@@ -210,7 +210,7 @@ Key packages:
 
 See `main.py/requirements.txt` for complete dependency list.
 
-## 🚧 Development Status
+## Development Status
 
 ### Current Progress
 - ✅ Project structure initialized
@@ -244,7 +244,7 @@ See `main.py/requirements.txt` for complete dependency list.
 - [ ] Build REST API wrapper
 - [ ] Add database integration (optional)
 
-## 🔧 Configuration
+## Configuration
 
 ### Environment Variables
 
@@ -258,7 +258,7 @@ MAX_PAPERS_BATCH=10
 CACHE_RESULTS=true
 ```
 
-## 📝 Contributing
+## Contributing
 
 This is an active development project. To contribute:
 
@@ -267,22 +267,22 @@ This is an active development project. To contribute:
 3. Add tests for new functionality
 4. Ensure all tests pass before committing
 
-## 📖 Documentation
+## Documentation
 
 For more detailed information:
 - **API Documentation** - See docstrings in `agents/` and `services/`
 - **Schema Definitions** - See `models/schemas.py`
 - **Example Papers** - Check `papers/` directory
 
-## ⚖️ License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE] file for details.
 
-## 👤 Author
+## Author
 
 Shruti Nair
 
-## 🤝 Support
+## Support
 
 For issues, questions, or suggestions, please create an issue or reach out.
 
