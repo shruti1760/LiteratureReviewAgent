@@ -42,34 +42,34 @@ Structured Literature Review
 
 | Agent | Status | Responsibility |
 |-------|--------|-----------------|
-| **Reader** | ✅ Active | Extract structured information from research papers |
-| **Analyzer** | 🚧 In Progress | Compare papers, identify gaps, analyze trends |
-| **Writer** | 🚧 In Progress | Generate formatted literature review documents |
-| **Planner** | 🚧 In Progress | Plan and orchestrate the review workflow |
+| **Reader** | ✅ Implemented | Extract structured information from research papers (Google Gemini) |
+| **Analyzer** | 📋 Planned | Compare papers, identify gaps, analyze trends |
+| **Writer** | 📋 Planned | Generate formatted literature review documents |
+| **Planner** | 📋 Planned | Plan and orchestrate the review workflow |
 
 ## Project Structure
 
 ```
 LiteratureReviewAgent/
 ├── agents/                 # AI agent implementations
-│   ├── reader.py          # Extract paper information (Google Gemini)
-│   ├── analyzer.py        # Analyze and compare papers
-│   ├── writer.py          # Generate literature review output
-│   └── planner.py         # Plan review workflow
+│   ├── reader.py          # ✅ Extract paper information (Google Gemini)
+│   ├── analyzer.py        # Analyze and compare papers (skeleton)
+│   ├── writer.py          # Generate literature review output (skeleton)
+│   └── planner.py         # Plan review workflow (skeleton)
 ├── services/              # Business logic & utilities
-│   ├── pdf_loader.py      # PDF extraction & text parsing
-│   └── orchestrator.py    # Coordinate multi-agent workflow
+│   ├── pdf_loader.py      # ✅ PDF extraction & text parsing (PyMuPDF)
+│   ├── text_chunker.py    # ✅ Text chunking for processing
+│   └── orchestrator.py    # Coordinate multi-agent workflow (skeleton)
 ├── models/                # Data structures & schemas
-│   └── schemas.py         # Pydantic models (Paper, Review, etc.)
+│   └── schemas.py         # ✅ Pydantic models (Paper)
 ├── papers/                # Sample research papers (PDF)
-├── tests/                 # Test suite
-│   ├── test_pipeline.py   # Integration tests
-│   ├── test_reader.py     # Reader agent tests
-│   ├── test_models.py     # Schema validation tests
-│   └── test_pdf.py        # PDF loading tests
-├── main.py/               # Entry point & configuration
-│   ├── requirements.txt    # Python dependencies
-│   └── README.md           # Project documentation
+├── test_pipeline.py       # ✅ Main pipeline integration tests (entry point)
+├── test_reader.py         # Reader agent tests
+├── test_models.py         # Schema validation tests
+├── test_pdf.py            # PDF loading tests
+├── test_chunker.py        # Text chunker tests
+├── main.py                # Entry point (empty - use test_pipeline.py)
+├── requirements.txt       # Python dependencies
 ├── .env                   # Environment variables (API keys)
 └── .venv/                 # Python virtual environment
 ```
@@ -105,7 +105,7 @@ source .venv/bin/activate
 3. **Install dependencies**
 
 ```bash
-pip install -r main.py/requirements.txt
+pip install -r requirements.txt
 ```
 
 4. **Set up environment variables**
@@ -121,19 +121,20 @@ GEMINI_API_KEY=your_google_api_key_here
 #### Extract Information from a Single Paper
 
 ```bash
-python main.py
+python test_pipeline.py
 ```
 
 This will:
 1. Load a PDF from `papers/` directory
-2. Extract text content
-3. Use the Reader agent to parse and structure the information
-4. Output structured paper data
+2. Chunk the text content for optimal processing
+3. Use the Reader agent (Google Gemini) to parse and structure the information
+4. Output structured paper data as a `Paper` object
 
 #### Example Code
 
 ```python
 from services.pdf_loader import extract_text_from_pdf
+from services.text_chunker import chunk_text
 from agents.reader import reader_agent
 import asyncio
 
@@ -141,8 +142,15 @@ async def review_paper(pdf_path: str):
     # Extract text from PDF
     text = extract_text_from_pdf(pdf_path)
     
+    # Chunk text for better processing
+    chunks = chunk_text(text)
+    paper_context = "\n\n".join(
+        f"--- Paper Chunk {i + 1} ---\n{chunk}"
+        for i, chunk in enumerate(chunks)
+    )
+    
     # Process with Reader agent
-    result = await reader_agent.run(text)
+    result = await reader_agent.run(paper_context)
     
     # Get structured paper information
     paper = result.output
@@ -203,38 +211,47 @@ class Paper(BaseModel):
 ## Dependencies
 
 Key packages:
-- **pydantic-ai** - Agentic AI framework
-- **pydantic** - Data validation & serialization
-- **pymupdf** - PDF text extraction
+- **pydantic-ai** - Agentic AI framework with LLM integration
+- **pydantic** - Data validation & serialization (v2)
+- **pymupdf** - PDF text extraction and processing
 - **python-dotenv** - Environment variable management
+- **google-generativeai** - Google Gemini API integration (required for Reader agent)
 
-See `main.py/requirements.txt` for complete dependency list.
+See `requirements.txt` for the complete dependency list.
 
 ## Development Status
 
 ### Current Progress
 - ✅ Project structure initialized
-- ✅ PDF loading service implemented
-- ✅ Reader agent (with Google Gemini integration) operational
-- 🚧 Analyzer agent (in development)
-- 🚧 Writer agent (in development)
-- 🚧 Planner agent (in development)
-- 🚧 Orchestrator service (in development)
-- 🚧 End-to-end pipeline integration
+- ✅ PDF loading service implemented (PyMuPDF)
+- ✅ Text chunking service implemented
+- ✅ Reader agent with Google Gemini integration operational
+- ✅ Pydantic models and schemas defined
+- ✅ Test pipeline framework in place
+- 📋 Analyzer agent (planned)
+- 📋 Writer agent (planned)
+- 📋 Planner agent (planned)
+- 📋 Orchestrator service (planned)
+- 📋 End-to-end pipeline integration (planned)
 
 ### Roadmap
 
 **Phase 1 - Core Pipeline** (Current)
+- [x] PDF loading and text extraction
+- [x] Text chunking for optimal processing
+- [x] Reader agent implementation
 - [ ] Complete Analyzer agent implementation
 - [ ] Complete Writer agent implementation
 - [ ] Complete Planner agent implementation
 - [ ] Implement Orchestrator service
+- [ ] End-to-end integration testing
 
 **Phase 2 - Enhancement**
 - [ ] Add support for batch processing multiple papers
 - [ ] Implement paper similarity detection
 - [ ] Add research gap identification
 - [ ] Create visualization tools for paper relationships
+- [ ] Support for additional document formats (DOCX, TXT)
 
 **Phase 3 - Production Ready**
 - [ ] Add error handling & retry logic
@@ -242,7 +259,7 @@ See `main.py/requirements.txt` for complete dependency list.
 - [ ] Add logging & monitoring
 - [ ] Create CLI interface
 - [ ] Build REST API wrapper
-- [ ] Add database integration (optional)
+- [ ] Add database integration for paper storage
 
 ## Configuration
 
@@ -288,5 +305,6 @@ For issues, questions, or suggestions, please create an issue or reach out.
 
 ---
 
-**Last Updated:** 2026-08-15  
-**Project Status:** Active Development 🚀
+**Last Updated:** 2026-08-18  
+**Project Status:** Active Development 🚀  
+**Current Phase:** Phase 1 - Core Pipeline (Reader Agent Complete)
