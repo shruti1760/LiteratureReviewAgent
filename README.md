@@ -59,11 +59,12 @@ LiteratureReviewAgent/
 ├── services/              # Business logic & utilities
 │   ├── pdf_loader.py      # ✅ PDF extraction & text parsing (PyMuPDF)
 │   ├── text_chunker.py    # ✅ Text chunking for processing
-│   └── orchestrator.py    # Coordinate multi-agent workflow (skeleton)
+│   └── orchaestrator.py   # Coordinate multi-agent workflow (skeleton)
 ├── models/                # Data structures & schemas
 │   └── schemas.py         # ✅ Pydantic models (Paper)
 ├── papers/                # Sample research papers (PDF)
 ├── test_pipeline.py       # ✅ Main pipeline integration tests (entry point)
+├── paper_output.json       # ✅ Latest structured Reader output
 ├── test_reader.py         # Reader agent tests
 ├── test_models.py         # Schema validation tests
 ├── test_pdf.py            # PDF loading tests
@@ -127,8 +128,13 @@ python test_pipeline.py
 This will:
 1. Load a PDF from `papers/` directory
 2. Chunk the text content for optimal processing
-3. Use the Reader agent (Google Gemini) to parse and structure the information
-4. Output structured paper data as a `Paper` object
+3. Recombine all chunks as one paper-level context
+4. Use the Reader agent (Google Gemini) to parse and structure the information
+5. Save the structured result to `paper_output.json` and print the `Paper` object
+
+The current pipeline has been validated with `papers/Impact-of-PM-and-BM-on-Success.pdf`.
+The generated JSON contains the paper title, authors, publication year, abstract,
+research problem, methodology, dataset, key findings, and limitations.
 
 #### Example Code
 
@@ -228,6 +234,8 @@ See `requirements.txt` for the complete dependency list.
 - ✅ Reader agent with Google Gemini integration operational
 - ✅ Pydantic models and schemas defined
 - ✅ Test pipeline framework in place
+- ✅ Single-paper Reader pipeline validated with chunked context
+- ✅ Structured extraction saved to `paper_output.json`
 - 📋 Analyzer agent (planned)
 - 📋 Writer agent (planned)
 - 📋 Planner agent (planned)
@@ -305,6 +313,6 @@ For issues, questions, or suggestions, please create an issue or reach out.
 
 ---
 
-**Last Updated:** 2026-08-18  
+**Last Updated:** 2026-08-19  
 **Project Status:** Active Development 🚀  
 **Current Phase:** Phase 1 - Core Pipeline (Reader Agent Complete)

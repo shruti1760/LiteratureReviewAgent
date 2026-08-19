@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import asyncio
+import json
 
 from services.pdf_loader import extract_text_from_pdf
 from services.text_chunker import chunk_text
@@ -10,7 +11,9 @@ from agents.reader import reader_agent
 
 
 async def main():
-    text = extract_text_from_pdf("papers\\Impact-of-PM-and-BM-on-Success.pdf")
+    text = extract_text_from_pdf(
+        "papers/Impact-of-PM-and-BM-on-Success.pdf"
+    )
 
     chunks = chunk_text(text)
 
@@ -35,6 +38,15 @@ async def main():
 
     result = await reader_agent.run(prompt)
 
+    with open("paper_output.json", "w", encoding="utf-8") as f:
+        json.dump(
+            result.output.model_dump(),
+            f,
+            indent=4,
+            ensure_ascii=False
+        )
+
+    print("Paper extracted successfully!")
     print(result.output)
 
 
