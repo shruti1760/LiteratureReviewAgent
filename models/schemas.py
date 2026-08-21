@@ -12,3 +12,10 @@ class Paper(BaseModel):
     dataset: str
     key_findings: str
     limitations: str
+
+class AnalysisResult(BaseModel):
+    key_contribution: str
+    strengths: list[str]
+    weaknesses: list[str]
+    research_gaps: list[str]
+    relevance_to_topic: str

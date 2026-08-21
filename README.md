@@ -1,243 +1,148 @@
 # Literature Review Agent
 
-An intelligent, agentic literature review assistant built with **PydanticAI** that automates the extraction, analysis, and synthesis of research papers into structured literature reviews.
+A Python prototype that extracts structured information from research-paper PDFs and analyzes the extracted paper with Google Gemini through PydanticAI.
 
-## Overview
+## What Works
 
-Literature Review Agent is a multi-agent system designed to streamline academic research workflows by automatically processing research papers and generating comprehensive literature reviews. The system leverages large language models to understand research content, extract key insights, identify patterns, and synthesize findings across multiple papers.
+The current implementation supports one paper at a time:
 
-## Features & Goals
+1. Extract text from a PDF with PyMuPDF.
+2. Split the text into 6,000-character chunks.
+3. Send the combined paper context to the Reader agent.
+4. Validate the response against the `Paper` Pydantic schema.
+5. Send the structured paper to the Analyzer agent.
 
-The Literature Review Agent is designed to:
-
-- **Extract Structured Information** - Automatically parse research papers and extract key metadata (title, authors, abstract, methodology, findings, etc.)
-- **Analyze Research Papers** - Identify similarities, differences, research gaps, and emerging themes across papers
-- **Generate Literature Reviews** - Synthesize extracted information into coherent, well-organized literature reviews
-- **Interpret Review Tasks** - Understand user requirements for literature review generation
-- **Track Research Connections** - Build knowledge graphs showing relationships between papers and research areas
+The Reader-only pipeline writes its result to `paper_output.json`. Literature-review writing, planning, and multi-paper synthesis are not implemented yet.
 
 ## Architecture
 
-The system follows a modular pipeline architecture:
-
-```
-PDF Files
-   ↓
-PDF Loader Service
-   ↓
-Orchestrator Service
-   ↓
-Planner Agent (Plan review strategy)
-   ↓
-Reader Agent (Extract paper information)
-   ↓
-Analyzer Agent (Analyze & compare papers)
-   ↓
-Writer Agent (Generate literature review)
-   ↓
-Structured Literature Review
+```text
+PDF
+ |
+ +--> services.pdf_loader.extract_text_from_pdf
+ |
+ +--> services.text_chunker.chunk_text
+ |
+ +--> agents.reader.reader_agent --> Paper
+                                |
+                                +--> agents.analyzer.analyzer_agent --> AnalysisResult
 ```
 
-### Agent Roles
+`services.orchestrator.LiteratureReviewOrchestrator.analyze_paper()` runs the full Reader-to-Analyzer flow. `test_pipeline.py` runs the Reader-only flow and saves JSON output.
 
-| Agent | Status | Responsibility |
-|-------|--------|-----------------|
-| **Reader** | ✅ Implemented | Extract structured information from research papers (Google Gemini) |
-| **Analyzer** | 📋 Planned | Compare papers, identify gaps, analyze trends |
-| **Writer** | 📋 Planned | Generate formatted literature review documents |
-| **Planner** | 📋 Planned | Plan and orchestrate the review workflow |
+## Requirements
 
-## Project Structure
+- Python 3.10+
+- A Google Gemini API key
+- A PDF in the `papers/` directory
 
-```
-LiteratureReviewAgent/
-├── agents/                 # AI agent implementations
-│   ├── reader.py          # ✅ Extract paper information (Google Gemini)
-│   ├── analyzer.py        # Analyze and compare papers (skeleton)
-│   ├── writer.py          # Generate literature review output (skeleton)
-│   └── planner.py         # Plan review workflow (skeleton)
-├── services/              # Business logic & utilities
-│   ├── pdf_loader.py      # ✅ PDF extraction & text parsing (PyMuPDF)
-│   ├── text_chunker.py    # ✅ Text chunking for processing
-│   └── orchaestrator.py   # Coordinate multi-agent workflow (skeleton)
-├── models/                # Data structures & schemas
-│   └── schemas.py         # ✅ Pydantic models (Paper)
-├── papers/                # Sample research papers (PDF)
-├── test_pipeline.py       # ✅ Main pipeline integration tests (entry point)
-├── paper_output.json       # ✅ Latest structured Reader output
-├── test_reader.py         # Reader agent tests
-├── test_models.py         # Schema validation tests
-├── test_pdf.py            # PDF loading tests
-├── test_chunker.py        # Text chunker tests
-├── main.py                # Entry point (empty - use test_pipeline.py)
-├── requirements.txt       # Python dependencies
-├── .env                   # Environment variables (API keys)
-└── .venv/                 # Python virtual environment
-```
-
-## Getting Started
-
-### Prerequisites
-
-- Python 3.10 or higher
-- pip package manager
-- A Google API key for Gemini (or other supported LLM)
-
-### Installation
-
-1. **Clone the repository** (or navigate to your project directory)
+The repository currently has no pinned dependencies in `requirements.txt`. Install the packages used by the source before running it:
 
 ```bash
-cd LiteratureReviewAgent
+python -m pip install pydantic pydantic-ai pymupdf python-dotenv
 ```
 
-2. **Create and activate a virtual environment**
+Create a `.env` file in the project root:
+
+```env
+GEMINI_API_KEY=your_google_api_key
+```
+
+Do not commit `.env` or API keys.
+
+## Run It
+
+Create and activate a virtual environment first:
 
 ```bash
-# Windows
 python -m venv .venv
-.venv\Scripts\activate
+```
 
-# macOS/Linux
-python -m venv .venv
+Windows PowerShell:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+macOS/Linux:
+
+```bash
 source .venv/bin/activate
 ```
 
-3. **Install dependencies**
-
-```bash
-pip install -r requirements.txt
-```
-
-4. **Set up environment variables**
-
-Create a `.env` file in the root directory:
-
-```env
-GEMINI_API_KEY=your_google_api_key_here
-```
-
-### Usage
-
-#### Extract Information from a Single Paper
+Run Reader extraction for the sample PDF:
 
 ```bash
 python test_pipeline.py
 ```
 
-This will:
-1. Load a PDF from `papers/` directory
-2. Chunk the text content for optimal processing
-3. Recombine all chunks as one paper-level context
-4. Use the Reader agent (Google Gemini) to parse and structure the information
-5. Save the structured result to `paper_output.json` and print the `Paper` object
+The sample path is currently hard-coded as `papers/sample.pdf`. The output is saved to `paper_output.json`.
 
-The current pipeline has been validated with `papers/Impact-of-PM-and-BM-on-Success.pdf`.
-The generated JSON contains the paper title, authors, publication year, abstract,
-research problem, methodology, dataset, key findings, and limitations.
-
-#### Example Code
-
-```python
-from services.pdf_loader import extract_text_from_pdf
-from services.text_chunker import chunk_text
-from agents.reader import reader_agent
-import asyncio
-
-async def review_paper(pdf_path: str):
-    # Extract text from PDF
-    text = extract_text_from_pdf(pdf_path)
-    
-    # Chunk text for better processing
-    chunks = chunk_text(text)
-    paper_context = "\n\n".join(
-        f"--- Paper Chunk {i + 1} ---\n{chunk}"
-        for i, chunk in enumerate(chunks)
-    )
-    
-    # Process with Reader agent
-    result = await reader_agent.run(paper_context)
-    
-    # Get structured paper information
-    paper = result.output
-    print(f"Title: {paper.title}")
-    print(f"Authors: {paper.authors}")
-    print(f"Year: {paper.publication_year}")
-    print(f"Key Findings: {paper.key_findings}")
-    
-    return paper
-
-# Run it
-asyncio.run(review_paper("papers/sample.pdf"))
-```
-
-### Running Tests
+To run the Reader and Analyzer together:
 
 ```bash
-# Run all tests
-pytest
-
-# Run specific test file
-pytest test_pipeline.py -v
-
-# Run with coverage
-pytest --cov=.
+python test_orchestrator.py
 ```
 
-## 📊 Data Models
+The orchestrator also uses the same hard-coded sample PDF and prints the resulting `Paper` and `AnalysisResult` objects.
 
-### Paper Schema
+## Data Models
 
-The system extracts and structures paper information using the `Paper` model:
+`models/schemas.py` defines two output models:
 
 ```python
 class Paper(BaseModel):
-    title: str              # Paper title
-    authors: List[str]      # List of author names
-    publication_year: int   # Year of publication
-    abstract: str          # Paper abstract
-    research_problem: str  # Problem being addressed
-    methodology: str       # Research methodology
-    dataset: str           # Datasets used
-    key_findings: str      # Main findings & conclusions
-    limitations: str       # Acknowledged limitations
+    title: str
+    authors: list[str]
+    publication_year: int
+    abstract: str
+    research_problem: str
+    methodology: str
+    dataset: str
+    key_findings: str
+    limitations: str
+
+class AnalysisResult(BaseModel):
+    key_contribution: str
+    strengths: list[str]
+    weaknesses: list[str]
+    research_gaps: list[str]
+    relevance_to_topic: str
 ```
 
-## Tech Stack
+If information is missing from a paper, the agents are instructed to report that it is not provided rather than inventing it.
 
-| Component | Technology |
-|-----------|-----------|
-| **AI Framework** | [PydanticAI](https://docs.pydantic.dev/latest/api/pydantic_ai/) |
-| **LLM** | Google Gemini 3.5 Flash |
-| **Data Validation** | Pydantic v2 |
-| **PDF Processing** | PyMuPDF (fitz) |
-| **Async Runtime** | asyncio |
-| **Environment Management** | python-dotenv |
+## Project Layout
 
-## Dependencies
+```text
+agents/       Reader and Analyzer agent definitions; Writer and Planner are empty placeholders
+models/       Pydantic output schemas
+services/     PDF extraction, text chunking, and orchestration
+papers/       Input PDF files
+test_*.py     Standalone scripts and tests for the current components
+main.py       Empty placeholder entry point
+paper_output.json  Example/generated Reader output
+```
 
-Key packages:
-- **pydantic-ai** - Agentic AI framework with LLM integration
-- **pydantic** - Data validation & serialization (v2)
-- **pymupdf** - PDF text extraction and processing
-- **python-dotenv** - Environment variable management
-- **google-generativeai** - Google Gemini API integration (required for Reader agent)
+## Tests
 
-See `requirements.txt` for the complete dependency list.
+Most test files are executable scripts rather than a configured pytest suite. Run the component checks individually, for example:
+
+```bash
+python test_models.py
+python test_pdf.py
+python test_chunker.py
+python test_reader.py
+python test_orchestrator.py
+```
+
+Tests that invoke an agent require a valid Gemini API key and may incur API usage. PDF-related checks require the sample PDF to be present.
 
 ## Development Status
 
-### Current Progress
-- ✅ Project structure initialized
-- ✅ PDF loading service implemented (PyMuPDF)
-- ✅ Text chunking service implemented
-- ✅ Reader agent with Google Gemini integration operational
-- ✅ Pydantic models and schemas defined
-- ✅ Test pipeline framework in place
-- ✅ Single-paper Reader pipeline validated with chunked context
-- ✅ Structured extraction saved to `paper_output.json`
-- 📋 Analyzer agent (planned)
-- 📋 Writer agent (planned)
+Implemented: PDF text extraction, fixed-size chunking, Reader extraction, Analyzer output schema, orchestration, and sample JSON output.
+
+Planned: configurable input paths, dependency pinning, multi-paper comparison, Writer output generation, and Planner workflow support.
 - 📋 Planner agent (planned)
 - 📋 Orchestrator service (planned)
 - 📋 End-to-end pipeline integration (planned)
@@ -248,7 +153,7 @@ See `requirements.txt` for the complete dependency list.
 - [x] PDF loading and text extraction
 - [x] Text chunking for optimal processing
 - [x] Reader agent implementation
-- [ ] Complete Analyzer agent implementation
+- [X] Complete Analyzer agent implementation
 - [ ] Complete Writer agent implementation
 - [ ] Complete Planner agent implementation
 - [ ] Implement Orchestrator service
@@ -313,6 +218,6 @@ For issues, questions, or suggestions, please create an issue or reach out.
 
 ---
 
-**Last Updated:** 2026-08-19  
+**Last Updated:** 2026-08-21 
 **Project Status:** Active Development 🚀  
 **Current Phase:** Phase 1 - Core Pipeline (Reader Agent Complete)
