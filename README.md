@@ -76,7 +76,7 @@ Run Reader extraction for the sample PDF:
 python test_pipeline.py
 ```
 
-The sample path is currently hard-coded as `papers/sample.pdf`. The output is saved to `paper_output.json`.
+The sample path is documented as `papers/sample.pdf` to keep the example filename generic. Update the hard-coded path in the script to match the PDF available in your local `papers/` directory. The output is saved to `paper_output.json`.
 
 To run the Reader and Analyzer together:
 
@@ -84,7 +84,7 @@ To run the Reader and Analyzer together:
 python test_orchestrator.py
 ```
 
-The orchestrator also uses the same hard-coded sample PDF and prints the resulting `Paper` and `AnalysisResult` objects.
+The orchestrator also uses the same hard-coded sample PDF path and prints the resulting `Paper` and `AnalysisResult` objects.
 
 ## Data Models
 
@@ -140,53 +140,29 @@ Tests that invoke an agent require a valid Gemini API key and may incur API usag
 
 ## Development Status
 
-Implemented: PDF text extraction, fixed-size chunking, Reader extraction, Analyzer output schema, orchestration, and sample JSON output.
+### Completed Today
 
-Planned: configurable input paths, dependency pinning, multi-paper comparison, Writer output generation, and Planner workflow support.
-- 📋 Planner agent (planned)
-- 📋 Orchestrator service (planned)
-- 📋 End-to-end pipeline integration (planned)
+- Added the Analyzer agent, which returns `AnalysisResult` data for a structured paper.
+- Added `LiteratureReviewOrchestrator.analyze_paper()` for the PDF-to-Reader-to-Analyzer workflow.
+- Added retry behavior for Reader-agent failures in the orchestrator.
+- Added tests for the `AnalysisResult` model, Analyzer agent, Reader-to-Analyzer flow, and orchestrator.
+- Documented the sample PDF as the generic `papers/sample.pdf` path.
 
-### Roadmap
+### Current Limitations
 
-**Phase 1 - Core Pipeline** (Current)
-- [x] PDF loading and text extraction
-- [x] Text chunking for optimal processing
-- [x] Reader agent implementation
-- [X] Complete Analyzer agent implementation
-- [ ] Complete Writer agent implementation
-- [ ] Complete Planner agent implementation
-- [ ] Implement Orchestrator service
-- [ ] End-to-end integration testing
+- Processing is limited to one PDF per run.
+- `agents/writer.py` and `agents/planner.py` are still placeholders.
+- Input paths are hard-coded in the example scripts.
+- `requirements.txt` is not yet populated or pinned.
+- Agent tests require a Gemini API key and may incur API usage.
 
-**Phase 2 - Enhancement**
-- [ ] Add support for batch processing multiple papers
-- [ ] Implement paper similarity detection
-- [ ] Add research gap identification
-- [ ] Create visualization tools for paper relationships
-- [ ] Support for additional document formats (DOCX, TXT)
+### Next Steps
 
-**Phase 3 - Production Ready**
-- [ ] Add error handling & retry logic
-- [ ] Implement caching mechanisms
-- [ ] Add logging & monitoring
-- [ ] Create CLI interface
-- [ ] Build REST API wrapper
-- [ ] Add database integration for paper storage
-
-## Configuration
-
-### Environment Variables
-
-```env
-# API Configuration
-GEMINI_API_KEY=your_api_key_here
-
-# Optional Settings
-LOG_LEVEL=INFO
-MAX_PAPERS_BATCH=10
-CACHE_RESULTS=true
-```
+- Populate and pin `requirements.txt`.
+- Make the input PDF configurable from the command line.
+- Add multi-paper comparison and synthesis.
+- Implement Writer and Planner agents.
+- Expand end-to-end tests with mocked model responses.
 
 ## Contributing
 
@@ -218,6 +194,6 @@ For issues, questions, or suggestions, please create an issue or reach out.
 
 ---
 
-**Last Updated:** 2026-08-21 
-**Project Status:** Active Development 🚀  
-**Current Phase:** Phase 1 - Core Pipeline (Reader Agent Complete)
+**Last Updated:** 2026-08-21  
+**Project Status:** Active Development  
+**Current Phase:** Phase 1 - Reader, Analyzer, and Orchestrator
