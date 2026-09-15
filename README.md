@@ -1,34 +1,79 @@
-# Literature Review Agent
+﻿# Literature Review Agent
 
-A Python prototype that extracts structured information from research-paper PDFs and analyzes the extracted paper with Google Gemini through PydanticAI.
+A Python prototype for turning a research-paper PDF into structured metadata and a short analysis using Google Gemini through PydanticAI.
 
-## What Works
+## Overview
 
-The current implementation supports one paper at a time:
+This project reads a PDF, chunks the extracted text, sends the combined paper context to a reader agent, validates the resulting structured object against a Pydantic schema, and then passes that structured paper to an analyzer agent.
 
-1. Extract text from a PDF with PyMuPDF.
-2. Split the text into 6,000-character chunks.
-3. Send the combined paper context to the Reader agent.
-4. Validate the response against the `Paper` Pydantic schema.
-5. Send the structured paper to the Analyzer agent.
+The current workflow is focused on a single paper at a time and is designed for literature review support rather than full multi-paper synthesis.
 
-The Reader-only pipeline writes its result to `paper_output.json`. Literature-review writing, planning, and multi-paper synthesis are not implemented yet.
+## What the project does
+
+1. Extracts text from a PDF using PyMuPDF.
+2. Splits the raw text into chunks of roughly 6,000 characters.
+3. Combines the chunks into a single paper prompt.
+4. Uses a Gemini-backed `Reader` agent to extract fields into a `Paper` model.
+5. Uses a Gemini-backed `Analyzer` agent to summarize contribution, strengths, weaknesses, gaps, and relevance.
+6. Returns the structured paper and analysis objects for inspection or downstream workflows.
 
 ## Architecture
 
 ```text
-PDF
- |
- +--> services.pdf_loader.extract_text_from_pdf
- |
- +--> services.text_chunker.chunk_text
- |
- +--> agents.reader.reader_agent --> Paper
-                                |
-                                +--> agents.analyzer.analyzer_agent --> AnalysisResult
+PDF file
+  |
+  v
+services/pdf_loader.py -> extract_text_from_pdf()
+  |
+  v
+services/text_chunker.py -> chunk_text()
+  |
+  v
+agents/reader.py -> reader_agent -> Paper
+  |
+  +--> services/orchestrator.py -> LiteratureReviewOrchestrator.analyze_paper()
+           |
+           v
+         agents/analyzer.py -> analyzer_agent -> AnalysisResult
 ```
 
-`services.orchestrator.LiteratureReviewOrchestrator.analyze_paper()` runs the full Reader-to-Analyzer flow. `test_pipeline.py` runs the Reader-only flow and saves JSON output.
+The orchestrator is the main entry point for the full pipeline and is responsible for the Reader-to-Analyzer flow.
+
+## Project structure
+
+```text
+agents/
+  analyzer.py      Gemini-based analysis agent
+  reader.py        Gemini-based extraction agent
+  planner.py       Placeholder for future planning logic
+  writer.py        Placeholder for future writing logic
+
+models/
+  schemas.py       Pydantic models for Paper and AnalysisResult
+
+services/
+  orchestrator.py   End-to-end single-paper workflow
+  pdf_loader.py    PDF text extraction
+  text_chunker.py  Chunking logic for long documents
+
+tests/
+  test_analysis_model.py
+  test_analyzer.py
+  test_chunker.py
+  test_models.py
+  test_orchestrator.py
+  test_pdf.py
+  test_pipeline.py
+  test_reader_analyzer.py
+  test_reader.py
+
+main.py            Placeholder application entry point
+requirements.txt   Dependency list (currently to be populated)
+paper_output.json  Example output from the Reader pipeline
+papers/            Input PDFs
+LICENSE            MIT license
+README.md          Project documentation
+```
 
 ## Requirements
 
@@ -36,7 +81,13 @@ PDF
 - A Google Gemini API key
 - A PDF in the `papers/` directory
 
-The repository currently has no pinned dependencies in `requirements.txt`. Install the packages used by the source before running it:
+Install the project dependencies:
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+If `requirements.txt` is not populated yet, install the packages used by the current code manually:
 
 ```bash
 python -m pip install pydantic pydantic-ai pymupdf python-dotenv
@@ -48,11 +99,37 @@ Create a `.env` file in the project root:
 GEMINI_API_KEY=your_google_api_key
 ```
 
-Do not commit `.env` or API keys.
+Do not commit `.env` files or API keys.
 
-## Run It
+## Data models
 
-Create and activate a virtual environment first:
+The core output schema is defined in `models/schemas.py`:
+
+```python
+class Paper(BaseModel):
+    title: str
+    authors: List[str]
+    publication_year: int
+    abstract: str
+    research_problem: str
+    methodology: str
+    dataset: str
+    key_findings: str
+    limitations: str
+
+class AnalysisResult(BaseModel):
+    key_contribution: str
+    strengths: list[str]
+    weaknesses: list[str]
+    research_gaps: list[str]
+    relevance_to_topic: str
+```
+
+The reader agent is instructed not to invent missing information and to explicitly note when a field is not available.
+
+## Setup
+
+Create and activate a virtual environment:
 
 ```bash
 python -m venv .venv
@@ -70,130 +147,99 @@ macOS/Linux:
 source .venv/bin/activate
 ```
 
-Run Reader extraction for the sample PDF:
+Then install dependencies and set your environment variables.
+
+## Running the app
+
+### Reader-only pipeline
+
+The Reader pipeline extracts structured data from a PDF and saves it as JSON:
 
 ```bash
-python test_pipeline.py
+python tests/test_pipeline.py
 ```
 
-The sample path is documented as `papers/sample.pdf` to keep the example filename generic. Update the hard-coded path in the script to match the PDF available in your local `papers/` directory. The output is saved to `paper_output.json`.
-
-To run the Reader and Analyzer together:
-
-```bash
-python test_orchestrator.py
-```
-
-The orchestrator also uses the same hard-coded sample PDF path and prints the resulting `Paper` and `AnalysisResult` objects.
-
-## Data Models
-
-`models/schemas.py` defines two output models:
-
-```python
-class Paper(BaseModel):
-    title: str
-    authors: list[str]
-    publication_year: int
-    abstract: str
-    research_problem: str
-    methodology: str
-    dataset: str
-    key_findings: str
-    limitations: str
-
-class AnalysisResult(BaseModel):
-    key_contribution: str
-    strengths: list[str]
-    weaknesses: list[str]
-    research_gaps: list[str]
-    relevance_to_topic: str
-```
-
-If information is missing from a paper, the agents are instructed to report that it is not provided rather than inventing it.
-
-## Project Layout
+This script currently reads a hard-coded PDF path similar to:
 
 ```text
-agents/       Reader and Analyzer agent definitions; Writer and Planner are empty placeholders
-models/       Pydantic output schemas
-services/     PDF extraction, text chunking, and orchestration
-papers/       Input PDF files
-test_*.py     Standalone scripts and tests for the current components
-main.py       Empty placeholder entry point
-paper_output.json  Example/generated Reader output
+papers/Impact-of-PM-and-BM-on-Success.pdf
 ```
 
-## Tests
+The output is written to `paper_output.json`.
 
-Most test files are executable scripts rather than a configured pytest suite. Run the component checks individually, for example:
+### Full paper analysis flow
+
+The orchestrator runs the full workflow:
 
 ```bash
-python test_models.py
-python test_pdf.py
-python test_chunker.py
-python test_reader.py
-python test_orchestrator.py
+python tests/test_orchestrator.py
 ```
 
-Tests that invoke an agent require a valid Gemini API key and may incur API usage. PDF-related checks require the sample PDF to be present.
+This executes:
 
-## Development Status
+- PDF extraction
+- chunking
+- Reader extraction
+- Analyzer evaluation
+- console output for both the `Paper` and `AnalysisResult` objects
 
-### Completed Today
+## Test workflow
 
-- Added the Analyzer agent, which returns `AnalysisResult` data for a structured paper.
-- Added `LiteratureReviewOrchestrator.analyze_paper()` for the PDF-to-Reader-to-Analyzer workflow.
-- Added retry behavior for Reader-agent failures in the orchestrator.
-- Added tests for the `AnalysisResult` model, Analyzer agent, Reader-to-Analyzer flow, and orchestrator.
-- Documented the sample PDF as the generic `papers/sample.pdf` path.
+The repository includes several test files under `tests/`. Most are direct Python scripts, and some require a valid Gemini API key.
 
-### Current Limitations
+Examples:
 
-- Processing is limited to one PDF per run.
-- `agents/writer.py` and `agents/planner.py` are still placeholders.
+```bash
+python tests/test_pdf.py
+python tests/test_chunker.py
+python tests/test_reader.py
+python tests/test_orchestrator.py
+```
+
+If `pytest` is installed, the suite can also be run with:
+
+```bash
+pytest
+```
+
+> Note: Tests that call an LLM require a valid Gemini API key and may consume API quota.
+
+## Current status
+
+### Completed
+
+- PDF text extraction via PyMuPDF
+- Text chunking for long research papers
+- Reader agent for structured extraction
+- Analyzer agent for contribution and relevance analysis
+- Orchestrator for the end-to-end single-paper workflow
+- Model validation with Pydantic
+- Basic test coverage for the main components
+
+### Current limitations
+
+- Only one paper is processed per run.
 - Input paths are hard-coded in the example scripts.
-- `requirements.txt` is not yet populated or pinned.
-- Agent tests require a Gemini API key and may incur API usage.
+- The `planner.py` and `writer.py` components are still placeholders.
+- Multi-paper synthesis and comparison are not yet implemented.
+- `requirements.txt` is not fully populated or pin-versioned yet.
 
-### Next Steps
+### Planned next steps
 
-- Populate and pin `requirements.txt`.
-- Make the input PDF configurable from the command line.
-- Add multi-paper comparison and synthesis.
-- Implement Writer and Planner agents.
-- Expand end-to-end tests with mocked model responses.
-
-## Contributing
-
-This is an active development project. To contribute:
-
-1. Create a feature branch
-2. Make your changes with clear commit messages
-3. Add tests for new functionality
-4. Ensure all tests pass before committing
-
-## Documentation
-
-For more detailed information:
-- **API Documentation** - See docstrings in `agents/` and `services/`
-- **Schema Definitions** - See `models/schemas.py`
-- **Example Papers** - Check `papers/` directory
+- Add configurable PDF input and CLI arguments
+- Populate and pin dependency versions
+- Implement the planner and writer agents
+- Support comparison across multiple papers
+- Add more robust end-to-end tests and mocked AI responses
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE] file for details.
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
 
-## Author
+## Contributor
 
 Shruti Nair
 
-## Support
-
-For issues, questions, or suggestions, please create an issue or reach out.
-
 ---
 
-**Last Updated:** 2026-08-21  
-**Project Status:** Active Development  
-**Current Phase:** Phase 1 - Reader, Analyzer, and Orchestrator
+Last updated: 2026-09-15
